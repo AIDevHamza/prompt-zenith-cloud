@@ -1,30 +1,43 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/components/AuthProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  ArrowLeft, 
-  Plus, 
-  FileText, 
-  Key, 
-  History, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  ArrowLeft,
+  Plus,
+  FileText,
+  Key,
+  History,
+  Eye,
+  Edit,
+  Trash2,
   Copy,
   Book,
-  Zap
+  Zap,
 } from "lucide-react";
 
 interface ProjectData {
@@ -63,20 +76,22 @@ export default function Project() {
   const { projectId } = useParams<{ projectId: string }>();
   const { user, loading } = useAuth();
   const { toast } = useToast();
-  
+
   const [project, setProject] = useState<ProjectData | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [promptVersions, setPromptVersions] = useState<PromptVersion[]>([]);
-  const [previewVariables, setPreviewVariables] = useState<Record<string, string>>({});
-  
+  const [previewVariables, setPreviewVariables] = useState<
+    Record<string, string>
+  >({});
+
   const [isLoading, setIsLoading] = useState(true);
   const [showCreatePromptDialog, setShowCreatePromptDialog] = useState(false);
   const [showCreateKeyDialog, setShowCreateKeyDialog] = useState(false);
   const [showEditPromptDialog, setShowEditPromptDialog] = useState(false);
   const [showVersionsDialog, setShowVersionsDialog] = useState(false);
-  
+
   const [newPrompt, setNewPrompt] = useState({ name: "", content: "" });
   const [newKeyName, setNewKeyName] = useState("");
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
@@ -119,10 +134,12 @@ export default function Project() {
         .order("updated_at", { ascending: false });
 
       if (promptsError) throw promptsError;
-      setPrompts((promptsData || []).map(p => ({
-        ...p,
-        variables: (p.variables as string[]) || []
-      })));
+      setPrompts(
+        (promptsData || []).map((p) => ({
+          ...p,
+          variables: (p.variables as string[]) || [],
+        })),
+      );
 
       // Fetch API keys
       const { data: keysData, error: keysError } = await supabase
@@ -133,7 +150,6 @@ export default function Project() {
 
       if (keysError) throw keysError;
       setApiKeys(keysData || []);
-
     } catch (error: any) {
       toast({
         title: "Error",
@@ -147,7 +163,9 @@ export default function Project() {
 
   const extractVariables = (content: string): string[] => {
     const matches = content.match(/\{\{([^}]+)\}\}/g);
-    return matches ? [...new Set(matches.map(match => match.slice(2, -2)))] : [];
+    return matches
+      ? [...new Set(matches.map((match) => match.slice(2, -2)))]
+      : [];
   };
 
   const createPrompt = async (e: React.FormEvent) => {
@@ -157,24 +175,29 @@ export default function Project() {
     try {
       const { data, error } = await supabase
         .from("prompts")
-        .insert([{
-          project_id: projectId,
-          name: newPrompt.name,
-          content: newPrompt.content,
-          variables,
-        }])
+        .insert([
+          {
+            project_id: projectId,
+            name: newPrompt.name,
+            content: newPrompt.content,
+            variables,
+          },
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
-      setPrompts(prev => [{
-        ...data,
-        variables: (data.variables as string[]) || []
-      }, ...prev]);
+      setPrompts((prev) => [
+        {
+          ...data,
+          variables: (data.variables as string[]) || [],
+        },
+        ...prev,
+      ]);
       setNewPrompt({ name: "", content: "" });
       setShowCreatePromptDialog(false);
-      
+
       toast({
         title: "Success",
         description: "Prompt created successfully",
@@ -208,13 +231,19 @@ export default function Project() {
 
       if (error) throw error;
 
-      setPrompts(prev => prev.map(p => p.id === editingPrompt.id ? {
-        ...data,
-        variables: (data.variables as string[]) || []
-      } : p));
+      setPrompts((prev) =>
+        prev.map((p) =>
+          p.id === editingPrompt.id
+            ? {
+                ...data,
+                variables: (data.variables as string[]) || [],
+              }
+            : p,
+        ),
+      );
       setEditingPrompt(null);
       setShowEditPromptDialog(false);
-      
+
       toast({
         title: "Success",
         description: "Prompt updated successfully",
@@ -237,8 +266,8 @@ export default function Project() {
 
       if (error) throw error;
 
-      setPrompts(prev => prev.filter(p => p.id !== promptId));
-      
+      setPrompts((prev) => prev.filter((p) => p.id !== promptId));
+
       toast({
         title: "Success",
         description: "Prompt deleted successfully",
@@ -259,27 +288,31 @@ export default function Project() {
       // Generate a secure API key
       const keyBytes = new Uint8Array(32);
       crypto.getRandomValues(keyBytes);
-      const apiKey = Array.from(keyBytes, byte => byte.toString(16).padStart(2, '0')).join('');
+      const apiKey = Array.from(keyBytes, (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
       const keyPrefix = `pk_${apiKey.substring(0, 8)}`;
       const keyHash = apiKey; // In production, this should be properly hashed
 
       const { data, error } = await supabase
         .from("api_keys")
-        .insert([{
-          project_id: projectId,
-          name: newKeyName,
-          key_hash: keyHash,
-          key_prefix: keyPrefix,
-        }])
+        .insert([
+          {
+            project_id: projectId,
+            name: newKeyName,
+            key_hash: keyHash,
+            key_prefix: keyPrefix,
+          },
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
-      setApiKeys(prev => [data, ...prev]);
+      setApiKeys((prev) => [data, ...prev]);
       setNewKeyName("");
       setShowCreateKeyDialog(false);
-      
+
       // Show the full API key to the user (only time they'll see it)
       navigator.clipboard.writeText(apiKey);
       toast({
@@ -304,8 +337,8 @@ export default function Project() {
 
       if (error) throw error;
 
-      setApiKeys(prev => prev.filter(k => k.id !== keyId));
-      
+      setApiKeys((prev) => prev.filter((k) => k.id !== keyId));
+
       toast({
         title: "Success",
         description: "API key deleted successfully",
@@ -328,10 +361,12 @@ export default function Project() {
         .order("version_number", { ascending: false });
 
       if (error) throw error;
-      setPromptVersions((data || []).map(v => ({
-        ...v,
-        variables: (v.variables as string[]) || []
-      })));
+      setPromptVersions(
+        (data || []).map((v) => ({
+          ...v,
+          variables: (v.variables as string[]) || [],
+        })),
+      );
     } catch (error: any) {
       toast({
         title: "Error",
@@ -357,12 +392,18 @@ export default function Project() {
 
       if (error) throw error;
 
-      setPrompts(prev => prev.map(p => p.id === selectedPrompt.id ? {
-        ...data,
-        variables: (data.variables as string[]) || []
-      } : p));
+      setPrompts((prev) =>
+        prev.map((p) =>
+          p.id === selectedPrompt.id
+            ? {
+                ...data,
+                variables: (data.variables as string[]) || [],
+              }
+            : p,
+        ),
+      );
       setShowVersionsDialog(false);
-      
+
       toast({
         title: "Success",
         description: `Reverted to version ${version.version_number}`,
@@ -378,9 +419,12 @@ export default function Project() {
 
   const renderPreview = (prompt: Prompt) => {
     let preview = prompt.content;
-    prompt.variables.forEach(variable => {
+    prompt.variables.forEach((variable) => {
       const value = previewVariables[variable] || `{{${variable}}}`;
-      preview = preview.replace(new RegExp(`\\{\\{${variable}\\}\\}`, 'g'), value);
+      preview = preview.replace(
+        new RegExp(`\\{\\{${variable}\\}\\}`, "g"),
+        value,
+      );
     });
     return preview;
   };
@@ -405,7 +449,11 @@ export default function Project() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
                   <ArrowLeft className="h-4 w-4" />
                   Back
                 </Button>
@@ -443,7 +491,10 @@ export default function Project() {
           <TabsContent value="prompts" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Prompts</h2>
-              <Dialog open={showCreatePromptDialog} onOpenChange={setShowCreatePromptDialog}>
+              <Dialog
+                open={showCreatePromptDialog}
+                onOpenChange={setShowCreatePromptDialog}
+              >
                 <DialogTrigger asChild>
                   <Button className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
@@ -463,7 +514,12 @@ export default function Project() {
                       <Input
                         id="promptName"
                         value={newPrompt.name}
-                        onChange={(e) => setNewPrompt(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setNewPrompt((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         placeholder="Enter prompt name"
                         required
                       />
@@ -473,13 +529,19 @@ export default function Project() {
                       <Textarea
                         id="promptContent"
                         value={newPrompt.content}
-                        onChange={(e) => setNewPrompt(prev => ({ ...prev, content: e.target.value }))}
+                        onChange={(e) =>
+                          setNewPrompt((prev) => ({
+                            ...prev,
+                            content: e.target.value,
+                          }))
+                        }
                         placeholder="Enter your prompt template. Use {{variableName}} for variables."
                         rows={10}
                         required
                       />
                       <p className="text-sm text-muted-foreground">
-                        Use {`{{variableName}}`} syntax for variables that can be replaced dynamically.
+                        Use {`{{variableName}}`} syntax for variables that can
+                        be replaced dynamically.
                       </p>
                     </div>
                     <div className="flex gap-2 justify-end">
@@ -518,12 +580,14 @@ export default function Project() {
                             {prompt.name}
                             {prompt.variables.length > 0 && (
                               <Badge variant="secondary">
-                                {prompt.variables.length} variable{prompt.variables.length !== 1 ? 's' : ''}
+                                {prompt.variables.length} variable
+                                {prompt.variables.length !== 1 ? "s" : ""}
                               </Badge>
                             )}
                           </CardTitle>
                           <CardDescription>
-                            Updated {new Date(prompt.updated_at).toLocaleDateString()}
+                            Updated{" "}
+                            {new Date(prompt.updated_at).toLocaleDateString()}
                           </CardDescription>
                         </div>
                         <div className="flex gap-2">
@@ -548,6 +612,49 @@ export default function Project() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+
+                          {/* ADD THIS NEW BUTTON */}
+                          {apiKeys.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const variablesObj =
+                                  prompt.variables.length > 0
+                                    ? prompt.variables.reduce(
+                                        (acc, variable) => {
+                                          acc[variable] = `sample_${variable}`;
+                                          return acc;
+                                        },
+                                        {} as Record<string, string>,
+                                      )
+                                    : {};
+
+                                const curlCommand = `curl -X POST '${window.location.origin}/api/render-prompt' \\
+                          -H 'Content-Type: application/json' \\
+                          -H 'x-api-key: ${apiKeys[0].key_prefix}...' \\
+                          -d '${JSON.stringify(
+                            {
+                              promptId: prompt.id,
+                              variables: variablesObj,
+                            },
+                            null,
+                            2,
+                          )}'`;
+
+                                navigator.clipboard.writeText(curlCommand);
+                                toast({
+                                  title: "cURL Command Copied",
+                                  description:
+                                    "Ready-to-use cURL command copied to clipboard. Replace sample variables with your actual values.",
+                                });
+                              }}
+                              title="Copy cURL command"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -565,12 +672,14 @@ export default function Project() {
                           {prompt.content}
                         </div>
                       </div>
-                      
+
                       {prompt.variables.length > 0 && (
                         <div>
-                          <Label className="text-sm font-medium">Variables:</Label>
+                          <Label className="text-sm font-medium">
+                            Variables:
+                          </Label>
                           <div className="mt-2 flex flex-wrap gap-2">
-                            {prompt.variables.map(variable => (
+                            {prompt.variables.map((variable) => (
                               <Badge key={variable} variant="outline">
                                 {`{{${variable}}}`}
                               </Badge>
@@ -581,23 +690,34 @@ export default function Project() {
 
                       {prompt.variables.length > 0 && (
                         <div>
-                          <Label className="text-sm font-medium">Preview with values:</Label>
+                          <Label className="text-sm font-medium">
+                            Preview with values:
+                          </Label>
                           <div className="mt-2 space-y-2">
-                            {prompt.variables.map(variable => (
-                              <div key={variable} className="flex gap-2 items-center">
-                                <Label className="text-xs w-20">{variable}:</Label>
-                                 <Input
+                            {prompt.variables.map((variable) => (
+                              <div
+                                key={variable}
+                                className="flex gap-2 items-center"
+                              >
+                                <Label className="text-xs w-20">
+                                  {variable}:
+                                </Label>
+                                <Input
                                   placeholder={`Enter ${variable}`}
                                   value={previewVariables[variable] || ""}
-                                  onChange={(e) => setPreviewVariables(prev => ({
-                                    ...prev,
-                                    [variable]: e.target.value
-                                  }))}
+                                  onChange={(e) =>
+                                    setPreviewVariables((prev) => ({
+                                      ...prev,
+                                      [variable]: e.target.value,
+                                    }))
+                                  }
                                 />
                               </div>
                             ))}
                             <div className="mt-3 p-3 bg-secondary rounded-md">
-                              <Label className="text-sm font-medium">Preview:</Label>
+                              <Label className="text-sm font-medium">
+                                Preview:
+                              </Label>
                               <div className="mt-1 font-mono text-sm">
                                 {renderPreview(prompt)}
                               </div>
@@ -615,7 +735,10 @@ export default function Project() {
           <TabsContent value="api-keys" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">API Keys</h2>
-              <Dialog open={showCreateKeyDialog} onOpenChange={setShowCreateKeyDialog}>
+              <Dialog
+                open={showCreateKeyDialog}
+                onOpenChange={setShowCreateKeyDialog}
+              >
                 <DialogTrigger asChild>
                   <Button className="flex items-center gap-2">
                     <Plus className="h-4 w-4" />
@@ -626,7 +749,8 @@ export default function Project() {
                   <DialogHeader>
                     <DialogTitle>Create API Key</DialogTitle>
                     <DialogDescription>
-                      Create a new API key for accessing your prompts externally.
+                      Create a new API key for accessing your prompts
+                      externally.
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={createApiKey} className="space-y-4">
@@ -642,7 +766,8 @@ export default function Project() {
                     </div>
                     <Alert>
                       <AlertDescription>
-                        The API key will only be shown once. Make sure to copy and store it securely.
+                        The API key will only be shown once. Make sure to copy
+                        and store it securely.
                       </AlertDescription>
                     </Alert>
                     <div className="flex gap-2 justify-end">
@@ -666,7 +791,8 @@ export default function Project() {
                   <Key className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <CardTitle>No API keys yet</CardTitle>
                   <CardDescription>
-                    Create API keys to access your prompts from external applications.
+                    Create API keys to access your prompts from external
+                    applications.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -679,7 +805,8 @@ export default function Project() {
                         <div>
                           <CardTitle>{apiKey.name}</CardTitle>
                           <CardDescription>
-                            Created {new Date(apiKey.created_at).toLocaleDateString()}
+                            Created{" "}
+                            {new Date(apiKey.created_at).toLocaleDateString()}
                           </CardDescription>
                         </div>
                         <Button
@@ -703,7 +830,8 @@ export default function Project() {
                             navigator.clipboard.writeText(apiKey.key_prefix);
                             toast({
                               title: "Key Prefix Copied",
-                              description: "Key prefix copied to clipboard. Note: Full key is only shown once during creation.",
+                              description:
+                                "Key prefix copied to clipboard. Note: Full key is only shown once during creation.",
                             });
                           }}
                         >
@@ -711,12 +839,14 @@ export default function Project() {
                         </Button>
                         {apiKey.last_used && (
                           <Badge variant="outline">
-                            Last used {new Date(apiKey.last_used).toLocaleDateString()}
+                            Last used{" "}
+                            {new Date(apiKey.last_used).toLocaleDateString()}
                           </Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Full API key is only shown once during creation for security reasons.
+                        Full API key is only shown once during creation for
+                        security reasons.
                       </p>
                     </CardContent>
                   </Card>
@@ -749,9 +879,7 @@ export default function Project() {
                     Include your API key in the request headers:
                   </p>
                   <div className="bg-muted p-4 rounded-md">
-                    <code className="text-sm">
-                      x-api-key: YOUR_API_KEY
-                    </code>
+                    <code className="text-sm">x-api-key: YOUR_API_KEY</code>
                   </div>
                 </div>
 
@@ -759,7 +887,7 @@ export default function Project() {
                   <h3 className="text-lg font-semibold mb-3">Request Format</h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`{
+                      {`{
   "promptId": "your-prompt-id",
   "variables": {
     "name": "John Doe",
@@ -771,10 +899,12 @@ export default function Project() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Response Format</h3>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Response Format
+                  </h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`{
+                      {`{
   "content": "Hello John Doe from Acme Corp!",
   "variables": ["name", "company"]
 }`}
@@ -783,10 +913,12 @@ export default function Project() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Example: JavaScript/Node.js</h3>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Example: JavaScript/Node.js
+                  </h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`const response = await fetch('${window.location.origin}/api/render-prompt', {
+                      {`const response = await fetch('${window.location.origin}/api/render-prompt', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -808,10 +940,12 @@ console.log(data.content); // "Hello John Doe from Acme Corp!"`}
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Example: Python</h3>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Example: Python
+                  </h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`import requests
+                      {`import requests
 
 # Replace with your actual domain
 response = requests.post(
@@ -839,7 +973,7 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                   <h3 className="text-lg font-semibold mb-3">Example: cURL</h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`curl -X POST '${window.location.origin}/api/render-prompt' \\
+                      {`curl -X POST '${window.location.origin}/api/render-prompt' \\
   -H 'Content-Type: application/json' \\
   -H 'x-api-key: YOUR_API_KEY' \\
   -d '{
@@ -856,9 +990,12 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                 {/* Prefilled curl request section */}
                 {selectedPrompt && apiKeys.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Ready-to-Use cURL Request</h3>
+                    <h3 className="text-lg font-semibold mb-3">
+                      Ready-to-Use cURL Request
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Copy this prefilled request with your actual prompt ID and API key:
+                      Copy this prefilled request with your actual prompt ID and
+                      API key:
                     </p>
                     <div className="bg-muted p-4 rounded-md relative">
                       <Button
@@ -866,25 +1003,34 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                         size="sm"
                         className="absolute top-2 right-2"
                         onClick={() => {
-                          const variablesObj = selectedPrompt.variables.length > 0 
-                            ? selectedPrompt.variables.reduce((acc, variable) => {
-                                acc[variable] = `sample_${variable}`;
-                                return acc;
-                              }, {} as Record<string, string>)
-                            : {};
-                          
+                          const variablesObj =
+                            selectedPrompt.variables.length > 0
+                              ? selectedPrompt.variables.reduce(
+                                  (acc, variable) => {
+                                    acc[variable] = `sample_${variable}`;
+                                    return acc;
+                                  },
+                                  {} as Record<string, string>,
+                                )
+                              : {};
+
                           const curlCommand = `curl -X POST '${window.location.origin}/api/render-prompt' \\
   -H 'Content-Type: application/json' \\
   -H 'x-api-key: ${apiKeys[0].key_prefix}...' \\
-  -d '${JSON.stringify({
-    promptId: selectedPrompt.id,
-    variables: variablesObj
-  }, null, 2)}'`;
-                          
+  -d '${JSON.stringify(
+    {
+      promptId: selectedPrompt.id,
+      variables: variablesObj,
+    },
+    null,
+    2,
+  )}'`;
+
                           navigator.clipboard.writeText(curlCommand);
                           toast({
                             title: "cURL Command Copied",
-                            description: "Ready-to-use cURL command copied to clipboard. Replace sample variables with your actual values.",
+                            description:
+                              "Ready-to-use cURL command copied to clipboard. Replace sample variables with your actual values.",
                           });
                         }}
                       >
@@ -892,22 +1038,31 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                         Copy cURL
                       </Button>
                       <pre className="text-sm overflow-x-auto pr-20">
-{`curl -X POST '${window.location.origin}/api/render-prompt' \\
+                        {`curl -X POST '${window.location.origin}/api/render-prompt' \\
   -H 'Content-Type: application/json' \\
   -H 'x-api-key: ${apiKeys[0].key_prefix}...' \\
-  -d '${JSON.stringify({
-    promptId: selectedPrompt.id,
-    variables: selectedPrompt.variables.length > 0 
-      ? selectedPrompt.variables.reduce((acc, variable) => {
-          acc[variable] = `sample_${variable}`;
-          return acc;
-        }, {} as Record<string, string>)
-      : {}
-  }, null, 2)}'`}
+  -d '${JSON.stringify(
+    {
+      promptId: selectedPrompt.id,
+      variables:
+        selectedPrompt.variables.length > 0
+          ? selectedPrompt.variables.reduce(
+              (acc, variable) => {
+                acc[variable] = `sample_${variable}`;
+                return acc;
+              },
+              {} as Record<string, string>,
+            )
+          : {},
+    },
+    null,
+    2,
+  )}'`}
                       </pre>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Note: Replace the sample variable values with your actual data. The API key shown is only a prefix for security.
+                      Note: Replace the sample variable values with your actual
+                      data. The API key shown is only a prefix for security.
                     </p>
                   </div>
                 )}
@@ -918,13 +1073,14 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
       </div>
 
       {/* Edit Prompt Dialog */}
-      <Dialog open={showEditPromptDialog} onOpenChange={setShowEditPromptDialog}>
+      <Dialog
+        open={showEditPromptDialog}
+        onOpenChange={setShowEditPromptDialog}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Prompt</DialogTitle>
-            <DialogDescription>
-              Update your prompt template.
-            </DialogDescription>
+            <DialogDescription>Update your prompt template.</DialogDescription>
           </DialogHeader>
           {editingPrompt && (
             <form onSubmit={updatePrompt} className="space-y-4">
@@ -933,7 +1089,11 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                 <Input
                   id="editPromptName"
                   value={editingPrompt.name}
-                  onChange={(e) => setEditingPrompt(prev => prev ? { ...prev, name: e.target.value } : null)}
+                  onChange={(e) =>
+                    setEditingPrompt((prev) =>
+                      prev ? { ...prev, name: e.target.value } : null,
+                    )
+                  }
                   required
                 />
               </div>
@@ -942,7 +1102,11 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                 <Textarea
                   id="editPromptContent"
                   value={editingPrompt.content}
-                  onChange={(e) => setEditingPrompt(prev => prev ? { ...prev, content: e.target.value } : null)}
+                  onChange={(e) =>
+                    setEditingPrompt((prev) =>
+                      prev ? { ...prev, content: e.target.value } : null,
+                    )
+                  }
                   rows={10}
                   required
                 />
@@ -977,7 +1141,9 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-sm">Version {version.version_number}</CardTitle>
+                      <CardTitle className="text-sm">
+                        Version {version.version_number}
+                      </CardTitle>
                       <CardDescription>
                         {new Date(version.created_at).toLocaleString()}
                       </CardDescription>
