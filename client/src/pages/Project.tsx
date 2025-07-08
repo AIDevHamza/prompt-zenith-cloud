@@ -852,6 +852,65 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                     </pre>
                   </div>
                 </div>
+
+                {/* Prefilled curl request section */}
+                {selectedPrompt && apiKeys.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Ready-to-Use cURL Request</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Copy this prefilled request with your actual prompt ID and API key:
+                    </p>
+                    <div className="bg-muted p-4 rounded-md relative">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          const variablesObj = selectedPrompt.variables.length > 0 
+                            ? selectedPrompt.variables.reduce((acc, variable) => {
+                                acc[variable] = `sample_${variable}`;
+                                return acc;
+                              }, {} as Record<string, string>)
+                            : {};
+                          
+                          const curlCommand = `curl -X POST '${window.location.origin}/api/render-prompt' \\
+  -H 'Content-Type: application/json' \\
+  -H 'x-api-key: ${apiKeys[0].key_prefix}...' \\
+  -d '${JSON.stringify({
+    promptId: selectedPrompt.id,
+    variables: variablesObj
+  }, null, 2)}'`;
+                          
+                          navigator.clipboard.writeText(curlCommand);
+                          toast({
+                            title: "cURL Command Copied",
+                            description: "Ready-to-use cURL command copied to clipboard. Replace sample variables with your actual values.",
+                          });
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy cURL
+                      </Button>
+                      <pre className="text-sm overflow-x-auto pr-20">
+{`curl -X POST '${window.location.origin}/api/render-prompt' \\
+  -H 'Content-Type: application/json' \\
+  -H 'x-api-key: ${apiKeys[0].key_prefix}...' \\
+  -d '${JSON.stringify({
+    promptId: selectedPrompt.id,
+    variables: selectedPrompt.variables.length > 0 
+      ? selectedPrompt.variables.reduce((acc, variable) => {
+          acc[variable] = `sample_${variable}`;
+          return acc;
+        }, {} as Record<string, string>)
+      : {}
+  }, null, 2)}'`}
+                      </pre>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Note: Replace the sample variable values with your actual data. The API key shown is only a prefix for security.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
