@@ -96,6 +96,10 @@ export default function Project() {
   const [newKeyName, setNewKeyName] = useState("");
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showAiUpdateDialog, setShowAiUpdateDialog] = useState(false);
+  const [aiUpdatePrompt, setAiUpdatePrompt] = useState("");
+
   useEffect(() => {
     if (user && projectId) {
       fetchProjectData();
@@ -113,6 +117,52 @@ export default function Project() {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
+  const updatePromptWithAI = async (updateInstruction: string) => {
+    if (!editingPrompt) return;
+
+    setIsGenerating(true);
+    try {
+      // Call your backend API that handles OpenAI integration
+      const response = await fetch("/api/ai/update-prompt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPrompt: editingPrompt.content,
+          updateInstruction: updateInstruction,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update prompt with AI");
+      }
+
+      const data = await response.json();
+
+      // Update the editing prompt with AI-generated content
+      setEditingPrompt((prev) =>
+        prev ? { ...prev, content: data.updatedPrompt } : null,
+      );
+
+      setShowAiUpdateDialog(false);
+      setAiUpdatePrompt("");
+
+      toast({
+        title: "AI Update Complete",
+        description: "Your prompt has been updated with AI assistance!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "AI Update Failed",
+        description: error.message || "Failed to update prompt with AI",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const fetchProjectData = async () => {
     try {
@@ -1079,8 +1129,38 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Prompt</DialogTitle>
-            <DialogDescription>Update your prompt template.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              Edit Prompt
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAiUpdateDialog(true)}
+                className="ml-auto relative overflow-hidden group"
+                disabled={isGenerating}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-2">
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
+                      <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Generating...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4 text-purple-500 group-hover:animate-pulse" />
+                      <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-medium">
+                        Generate
+                      </span>
+                    </>
+                  )}
+                </div>
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              Update your prompt template or use AI to enhance it.
+            </DialogDescription>
           </DialogHeader>
           {editingPrompt && (
             <form onSubmit={updatePrompt} className="space-y-4">
@@ -1099,30 +1179,120 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="editPromptContent">Content</Label>
-                <Textarea
-                  id="editPromptContent"
-                  value={editingPrompt.content}
-                  onChange={(e) =>
-                    setEditingPrompt((prev) =>
-                      prev ? { ...prev, content: e.target.value } : null,
-                    )
-                  }
-                  rows={10}
-                  required
-                />
+                <div className="relative">
+                  <Textarea
+                    id="editPromptContent"
+                    value={editingPrompt.content}
+                    onChange={(e) =>
+                      setEditingPrompt((prev) =>
+                        prev ? { ...prev, content: e.target.value } : null,
+                      )
+                    }
+                    rows={10}
+                    required
+                    className={`transition-all duration-300 ${
+                      isGenerating
+                        ? "ring-2 ring-purple-500/50 ring-offset-2"
+                        : ""
+                    }`}
+                  />
+                  {isGenerating && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 animate-pulse rounded-md pointer-events-none"></div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowEditPromptDialog(false)}
+                  disabled={isGenerating}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Update Prompt</Button>
+                <Button type="submit" disabled={isGenerating}>
+                  Update Prompt
+                </Button>
               </div>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* A I Update Dialog */}
+      <Dialog open={showAiUpdateDialog} onOpenChange={setShowAiUpdateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="relative">
+                <Zap className="h-5 w-5 text-purple-500" />
+                <div className="absolute inset-0 animate-ping">
+                  <Zap className="h-5 w-5 text-purple-500 opacity-75" />
+                </div>
+              </div>
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                AI Prompt Enhancement
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              Tell me what you'd like to update or improve in your prompt.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (aiUpdatePrompt.trim()) {
+                updatePromptWithAI(aiUpdatePrompt);
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="aiUpdatePrompt">What would you like to update?</Label>
+              <Textarea
+                id="aiUpdatePrompt"
+                value={aiUpdatePrompt}
+                onChange={(e) => setAiUpdatePrompt(e.target.value)}
+                placeholder="e.g., Make it more professional, add a greeting, make it shorter, focus on sales..."
+                rows={3}
+                required
+                className="resize-none"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowAiUpdateDialog(false);
+                  setAiUpdatePrompt("");
+                }}
+                disabled={isGenerating}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isGenerating || !aiUpdatePrompt.trim()}
+                className="relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-2">
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" />
+                      <span>Update with AI</span>
+                    </>
+                  )}
+                </div>
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
