@@ -110,6 +110,12 @@ Promptever is a modern full-stack web application for managing prompt templates 
 ```
 Changelog:
 - July 08, 2025. Initial setup
+- July 08, 2025. Successfully migrated from Lovable to Replit
+  - Preserved Supabase integration as requested
+  - Moved Edge Functions to server routes for compatibility
+  - Fixed API key display with copy functionality
+  - Updated API documentation with correct endpoints
+  - Set up secure environment variables
 ```
 
 ## User Preferences

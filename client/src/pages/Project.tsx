@@ -689,15 +689,31 @@ export default function Project() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-2">
-                        <code className="bg-muted px-2 py-1 rounded font-mono text-sm">
+                        <code className="bg-muted px-2 py-1 rounded font-mono text-sm flex-1">
                           {apiKey.key_prefix}...
                         </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(apiKey.key_prefix);
+                            toast({
+                              title: "Key Prefix Copied",
+                              description: "Key prefix copied to clipboard. Note: Full key is only shown once during creation.",
+                            });
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
                         {apiKey.last_used && (
                           <Badge variant="outline">
                             Last used {new Date(apiKey.last_used).toLocaleDateString()}
                           </Badge>
                         )}
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Full API key is only shown once during creation for security reasons.
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -718,7 +734,7 @@ export default function Project() {
                   <h3 className="text-lg font-semibold mb-3">API Endpoint</h3>
                   <div className="bg-muted p-4 rounded-md">
                     <code className="text-sm">
-                      POST https://rernunefhizrdwzafmuy.supabase.co/functions/v1/render-prompt
+                      POST {window.location.origin}/api/render-prompt
                     </code>
                   </div>
                 </div>
@@ -766,7 +782,7 @@ export default function Project() {
                   <h3 className="text-lg font-semibold mb-3">Example: JavaScript/Node.js</h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`const response = await fetch('https://rernunefhizrdwzafmuy.supabase.co/functions/v1/render-prompt', {
+{`const response = await fetch('${window.location.origin}/api/render-prompt', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -793,8 +809,9 @@ console.log(data.content); // "Hello John Doe from Acme Corp!"`}
                     <pre className="text-sm overflow-x-auto">
 {`import requests
 
+# Replace with your actual domain
 response = requests.post(
-    'https://rernunefhizrdwzafmuy.supabase.co/functions/v1/render-prompt',
+    '${window.location.origin}/api/render-prompt',
     headers={
         'Content-Type': 'application/json',
         'x-api-key': 'YOUR_API_KEY'
@@ -818,7 +835,7 @@ print(data['content'])  # "Hello John Doe from Acme Corp!"`}
                   <h3 className="text-lg font-semibold mb-3">Example: cURL</h3>
                   <div className="bg-muted p-4 rounded-md">
                     <pre className="text-sm overflow-x-auto">
-{`curl -X POST 'https://rernunefhizrdwzafmuy.supabase.co/functions/v1/render-prompt' \\
+{`curl -X POST '${window.location.origin}/api/render-prompt' \\
   -H 'Content-Type: application/json' \\
   -H 'x-api-key: YOUR_API_KEY' \\
   -d '{
