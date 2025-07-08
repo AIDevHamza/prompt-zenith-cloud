@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/components/AuthProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -401,17 +402,20 @@ export default function Project() {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Zap className="h-6 w-6" />
-              <h1 className="text-xl font-semibold">{project.name}</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <Zap className="h-6 w-6" />
+                <h1 className="text-xl font-semibold">{project.name}</h1>
+              </div>
             </div>
+            <ThemeToggle />
           </div>
           {project.description && (
             <p className="text-muted-foreground mt-2">{project.description}</p>
@@ -494,7 +498,7 @@ export default function Project() {
             </div>
 
             {prompts.length === 0 ? (
-              <Card className="text-center py-12">
+              <Card className="premium-card text-center py-12">
                 <CardHeader>
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <CardTitle>No prompts yet</CardTitle>
@@ -506,7 +510,7 @@ export default function Project() {
             ) : (
               <div className="space-y-4">
                 {prompts.map((prompt) => (
-                  <Card key={prompt.id}>
+                  <Card key={prompt.id} className="premium-card">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -657,7 +661,7 @@ export default function Project() {
             </div>
 
             {apiKeys.length === 0 ? (
-              <Card className="text-center py-12">
+              <Card className="premium-card text-center py-12">
                 <CardHeader>
                   <Key className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <CardTitle>No API keys yet</CardTitle>
@@ -669,7 +673,7 @@ export default function Project() {
             ) : (
               <div className="space-y-4">
                 {apiKeys.map((apiKey) => (
-                  <Card key={apiKey.id}>
+                  <Card key={apiKey.id} className="premium-card">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -722,7 +726,7 @@ export default function Project() {
           </TabsContent>
 
           <TabsContent value="docs" className="space-y-6">
-            <Card>
+            <Card className="premium-card">
               <CardHeader>
                 <CardTitle>Integration Guide</CardTitle>
                 <CardDescription>

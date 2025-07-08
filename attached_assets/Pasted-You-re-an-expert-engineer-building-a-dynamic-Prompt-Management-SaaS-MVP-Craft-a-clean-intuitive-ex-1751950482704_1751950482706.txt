@@ -1,0 +1,36 @@
+You’re an expert engineer building a dynamic Prompt Management SaaS MVP. Craft a clean, intuitive experience that delivers on the promise of “edit once, deploy everywhere.” Your goals:
+
+1. **User Onboarding & Projects**  
+   - Let people sign up and log in.  
+   - After login, they land in a dashboard where they can create multiple “Projects” to organize their work.
+
+2. **Prompt Library & Templating**  
+   - Inside each project, users can add, edit, and delete prompts.  
+   - Prompts support placeholder variables like `{{name}}` or `{{company}}`.  
+   - Provide an inline preview so they can see how a prompt looks when filled with real values.
+
+3. **Dynamic Prompt API**  
+   - Expose a secure API endpoint that tools can call with a prompt ID and variable values.  
+   - The response should be the fully rendered prompt text, ready to inject into any workflow.
+
+4. **API Key Management**  
+   - Give each project its own API keys.  
+   - In the UI, allow users to generate, list, and revoke keys for external access.
+
+5. **Version History & Revert**  
+   - Track each prompt’s edit history.  
+   - Show the five most recent versions and let users roll back with a single click.
+
+6. **Integration Guide**  
+   - Include a simple, human-friendly guide explaining how to plug this service into common automation tools (e.g. via a webhook or HTTP request).  
+   - Provide a copy-paster code snippet that demonstrates fetching and using a rendered prompt.
+
+7. **Design & Style**  
+   - Build the UI with the same clean minimalism as Vercel’s dashboard:  
+     - Generous use of white space and a clear typographic hierarchy.  
+     - Subtle color accents for buttons and state indicators.  
+     - Simple, icon-driven navigation in a left-hand sidebar.  
+     - Responsive layouts that adapt gracefully to different screen sizes.  
+     - Focus on performance and instant interactions—no clutter, just clarity.
+
+Aim for a polished prototype with minimal but thoughtful styling, an easy-to-navigate UI, and all core flows working end to end. Let me know once it’s live so I can walk through and test each feature.  

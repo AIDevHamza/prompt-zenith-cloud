@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/components/AuthProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, FolderOpen, Calendar, Settings, LogOut, Zap } from "lucide-react";
@@ -118,10 +119,13 @@ export default function Dashboard() {
             <Zap className="h-6 w-6" />
             <h1 className="text-xl font-semibold">Promptever</h1>
           </div>
-          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-2">
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -194,7 +198,7 @@ export default function Dashboard() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : projects.length === 0 ? (
-          <Card className="text-center py-12">
+          <Card className="premium-card text-center py-12">
             <CardHeader>
               <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <CardTitle>No projects yet</CardTitle>
@@ -207,7 +211,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <Link key={project.id} to={`/project/${project.id}`}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="premium-card cursor-pointer">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FolderOpen className="h-5 w-5" />

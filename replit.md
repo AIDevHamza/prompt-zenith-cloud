@@ -116,6 +116,11 @@ Changelog:
   - Fixed API key display with copy functionality
   - Updated API documentation with correct endpoints
   - Set up secure environment variables
+- July 08, 2025. Added premium dark mode with metallic animated borders
+  - Implemented Vercel-style black background theme
+  - Added animated metallic border effects on hover
+  - Premium styling applied to all cards and components
+  - Theme toggle added to all main pages
 ```
 
 ## User Preferences
